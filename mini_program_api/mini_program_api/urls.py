@@ -23,7 +23,9 @@ from django.urls import path
 
 from . import view
 from . import account_api
+
 urlpatterns = [
     path('code2id', account_api.code2id),
-    path('update_user',account_api.update_user)
+    path('update_user', account_api.update_user),
+    path('check_with_session_key', account_api.check_with_session_key)
 ]

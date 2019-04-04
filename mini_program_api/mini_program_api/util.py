@@ -17,7 +17,6 @@ def get_json_dict(data={}, err_code=0, message="Success"):
     return ret
 
 
-
 class WXBizDataCrypt:
     def __init__(self, appId, sessionKey):
         self.appId = appId
@@ -39,5 +38,4 @@ class WXBizDataCrypt:
         return decrypted
 
     def _unpad(self, s):
-        return s[:-ord(s[len(s)-1:])]
-
+        return s[:-ord(s[len(s) - 1:])]

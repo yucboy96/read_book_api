@@ -38,7 +38,7 @@ def update_user(request):
                                                   , country=request.POST["country"],
                                                   province=request.POST["province"]
                                                   , gender=request.POST["gender"],
-                                                  nickname=request.POST["nickName"])
+                                                  nickName=request.POST["nickName"])
     return JsonResponse(util.get_json_dict())
 
 
@@ -49,8 +49,7 @@ def update_user(request):
 @require_POST
 def check_with_session_key(request):
     request.POST = json.loads(request.body.decode('utf-8'))
-    sessionId = request.POST["sessionId"]
-    session_key = User.object.filter(id=int(sessionId))
+    session_key = User.object.filter(id=int(request.POST["sessionId"]))
     signature2 = sha1(request.POST["rawData"], session_key)
     if signature2 == request.POST["signature"]:
         return JsonResponse(util.get_json_dict(data={"valid_user": True}))
@@ -58,3 +57,11 @@ def check_with_session_key(request):
         return JsonResponse(util.get_json_dict(data={"valid_user": False}))
 
 
+# @csrf_exempt
+# @require_POST
+# def update_nickName(request):
+#     request.POST = json.loads(request.body.decode('utf-8'))
+#     user = User.object.filter(id=int(request.POST["sessionId"]))
+#     user.nickName = request.POST["nickName"]
+#     user.save()
+#     return JsonResponse(util.get_json_dict())
