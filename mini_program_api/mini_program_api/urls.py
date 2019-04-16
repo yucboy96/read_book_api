@@ -23,9 +23,11 @@ from django.urls import path
 
 from . import view
 from . import account_api
+from . import pic_api
 
 urlpatterns = [
     path('code2id', account_api.code2id),
     path('update_user', account_api.update_user),
-    path('check_with_session_key', account_api.check_with_session_key)
+    path('check_with_session_key', account_api.check_with_session_key),
+    path('upload_pic', pic_api.upload_pic)
 ]

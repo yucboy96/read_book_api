@@ -33,13 +33,9 @@ def code2id(request):
 def update_user(request):
     request.POST = json.loads(request.body.decode('utf-8'))
     sessionId = request.POST["sessionId"]
-    # try:
-    User.objects.filter(id=int(sessionId)).update(avatarUrl=request.POST["avatarUrl"], city=request.POST["city"]
-                                                  , country=request.POST["country"],
-                                                  province=request.POST["province"]
-                                                  , gender=request.POST["gender"],
-                                                  nickName=request.POST["nickName"])
-    return JsonResponse(util.get_json_dict())
+    userInfo = request.POST["userInfo"]
+    User.objects.filter(id=int(sessionId)).update(**userInfo)
+    return JsonResponse(util.get_json_dict(message='update success'))
 
 
 # except:
@@ -55,7 +51,6 @@ def check_with_session_key(request):
         return JsonResponse(util.get_json_dict(data={"valid_user": True}))
     else:
         return JsonResponse(util.get_json_dict(data={"valid_user": False}))
-
 
 # @csrf_exempt
 # @require_POST
