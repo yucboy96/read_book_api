@@ -1,4 +1,5 @@
 from django.http import JsonResponse
+from django.shortcuts import HttpResponse
 
 import json
 import requests
@@ -6,7 +7,10 @@ from . import util
 from django.views.decorators.http import require_GET, require_POST
 from django.views.decorators.csrf import csrf_exempt
 from dbTables.models import User
+from dbTables.models import Variable
 from hashlib import sha1
+import os
+import datetime
 from .util import WXBizDataCrypt
 
 
@@ -25,6 +29,46 @@ def code2id(request):
         return response
         # except:
     response = JsonResponse(util.get_json_dict(err_code=1, message="code2id failed", data={}))
+    return response
+
+
+def get_access_token():
+    access_token = Variable.objects.get_or_create(name="wx_access_token")[0]
+    now = datetime.datetime.now(datetime.timezone.utc)
+    if access_token.lifeTime != '':
+        if (now - datetime.timedelta(0, int(access_token.lifeTime))) < access_token.lastModify:
+            return access_token.value
+
+    r = requests.get(util.GETACCESSTOKEN)
+    r = r.json()
+    access_token.lifeTime = str(r["expires_in"])
+    access_token.lastModify = now
+    access_token.value = r["access_token"]
+    access_token.save()
+    return r["access_token"]
+
+
+@require_GET
+#invalid when mini program isn't posted
+def get_wxcode(request):
+    access_token = get_access_token()
+    if not os.path.exists("../images/wxcode.png"):
+        params = {
+            "access_token": access_token,
+            "scene": "1"
+        }
+        header = {
+            "Content-Type": "application/json; charset=UTF-8"}
+        r = requests.post(util.GETWXCODE, data=params, headers=header)
+        print (r.text)
+        file = open('../images/wxcode.png', 'rb')
+        file.write(r.text)
+        file.close()
+    file = open('../images/wxcode.png', 'rb')
+    response = HttpResponse(file)
+    response['Content-Type'] = 'application/octet-stream'
+    response['Content-Disposition'] = 'attachment;filename="wxcode.png"'
+    file.close()
     return response
 
 

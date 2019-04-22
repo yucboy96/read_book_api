@@ -24,11 +24,18 @@ class Variable(models.Model):
     lifeTime = models.CharField(max_length=64)
     lastModify = models.DateTimeField(auto_now_add=True)
 
+class ReadTracker(models.Model):
+    webUrl = models.TextField()
+    title = models.CharField(max_length=255)
+    sessionId = models.IntegerField()
+    readTime = models.IntegerField()
+    isSuccess = models.BooleanField(default=False)
+    modify = models.DateField(auto_now_add=True)
 
 class Bookshelf(models.Model):
     webUrl = models.TextField()
     imgUrl = models.CharField(max_length=255)
-    name = models.CharField(max_length=255)
+    title = models.CharField(max_length=255)
     sessionId = models.IntegerField()
     writer = models.CharField(max_length=255)
     publisher = models.CharField(max_length=255)

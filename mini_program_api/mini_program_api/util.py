@@ -4,8 +4,9 @@ from Cryptodome.Cipher import AES
 
 APPID = "wxa62d182b0330c59b"
 APPSECRET = "ed54aa4d9c35db2e0664d4ae4501aacb"
-
 GETSESSIONKEY = "https://api.weixin.qq.com/sns/jscode2session?appid=" + APPID + "&secret=" + APPSECRET + "&grant_type=authorization_code&js_code="
+GETACCESSTOKEN = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&" + "appid=" + APPID + "&secret=" + APPSECRET
+GETWXCODE = "https://api.weixin.qq.com/wxa/getwxacodeunlimit"
 
 
 def get_json_dict(data={}, err_code=0, message="Success"):

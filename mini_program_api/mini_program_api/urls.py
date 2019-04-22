@@ -23,11 +23,18 @@ from django.urls import path
 
 from . import view
 from . import account_api
-from . import pic_api
+from . import book_api
 
 urlpatterns = [
     path('code2id', account_api.code2id),
     path('update_user', account_api.update_user),
     path('check_with_session_key', account_api.check_with_session_key),
-    path('upload_pic', pic_api.upload_pic)
+    path('upload_pic', book_api.upload_pic),
+    path('book_intro', book_api.book_intro),
+    path('bookshelf_add', book_api.bookshelf_add),
+    path('get_bookshelf', book_api.get_bookshelf),
+    path('delete_book', book_api.delete_book),
+    path("start_read", book_api.start_read),
+    path('read_success', book_api.read_success),
+    path('get_wxcode', account_api.get_wxcode)
 ]
