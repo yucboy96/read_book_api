@@ -7,7 +7,7 @@ from douban_query.query import search_list, search_book_intro
 from ocr.segmentation import segment
 from django.views.decorators.http import require_GET, require_POST
 from django.views.decorators.csrf import csrf_exempt
-from dbTables.models import Bookshelf, ReadTracker
+from dbTables.models import Bookshelf
 
 
 @csrf_exempt
@@ -96,21 +96,7 @@ def delete_book(request):
         return JsonResponse(util.get_json_dict(message="delete book success"))
 
 
-@csrf_exempt
-@require_POST
-def start_read(request):
-    request.POST = json.loads(request.body.decode('utf-8'))
-    return JsonResponse(util.get_json_dict(message="start_read success",
-                                           data={"ReadTrackerId": ReadTracker.objects.create(**request.POST).id}))
 
-@csrf_exempt
-@require_POST
-def read_success(request):
-    request.POST = json.loads(request.body.decode('utf-8'))
-    readTracker = ReadTracker.objects.get(id=request.POST["ReadTrackerId"])
-    readTracker.isSuccess= True
-    readTracker.save()
-    return JsonResponse(util.get_json_dict(message="read success success"))
 
 
 

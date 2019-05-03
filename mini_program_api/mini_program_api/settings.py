@@ -24,7 +24,7 @@ SECRET_KEY = 'iw78&9dt-rt=qs_-a229a=$n64fwdc4-9u4t7)498=tzi07&#)'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*', ]
 
 # Application definition
 
@@ -76,7 +76,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'mini_program',
         'USER': 'root',
-        'PASSWORD': '1q2w3e4R',
+        'PASSWORD': '1q2w3e4R.,',
         'HOST': 'localhost',
         'PORT': '3306',
     }
@@ -115,7 +115,7 @@ USE_I18N = True
 
 USE_L10N = True
 
-USE_TZ = True
+USE_TZ = False
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.1/howto/static-files/

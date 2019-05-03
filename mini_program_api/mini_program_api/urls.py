@@ -22,8 +22,8 @@ Including another URLconf
 from django.urls import path
 
 from . import view
-from . import account_api
-from . import book_api
+from . import account_api, book_api,tracker_api
+
 
 urlpatterns = [
     path('code2id', account_api.code2id),
@@ -34,7 +34,8 @@ urlpatterns = [
     path('bookshelf_add', book_api.bookshelf_add),
     path('get_bookshelf', book_api.get_bookshelf),
     path('delete_book', book_api.delete_book),
-    path("start_read", book_api.start_read),
-    path('read_success', book_api.read_success),
+    path("start_read", tracker_api.start_read),
+    path('read_success', tracker_api.read_success),
+    path('get_week_track',tracker_api.get_week_track),
     path('get_wxcode', account_api.get_wxcode)
 ]

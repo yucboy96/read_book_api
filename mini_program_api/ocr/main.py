@@ -14,7 +14,7 @@ OCRURL = "https://aip.baidubce.com/rest/2.0/ocr/v1/accurate_basic"
 def get_access_token():
     Variable.objects.get_or_create(name="baidu_access_token")
     access_token = Variable.objects.get(name="baidu_access_token")
-    now = datetime.datetime.now(datetime.timezone.utc)
+    now = datetime.datetime.now()
     if access_token.lifeTime != '':
         if (now - datetime.timedelta(0,int(access_token.lifeTime))) < access_token.lastModify:
             return access_token.value

@@ -30,7 +30,7 @@ class ReadTracker(models.Model):
     sessionId = models.IntegerField()
     readTime = models.IntegerField()
     isSuccess = models.BooleanField(default=False)
-    modify = models.DateField(auto_now_add=True)
+    modify = models.DateTimeField(auto_now_add=True)
 
 class Bookshelf(models.Model):
     webUrl = models.TextField()
@@ -39,7 +39,9 @@ class Bookshelf(models.Model):
     sessionId = models.IntegerField()
     writer = models.CharField(max_length=255)
     publisher = models.CharField(max_length=255)
-    info = models.TextField()
+    pubTime = models.CharField(max_length=32)
+    intro = models.TextField()
+    rating = models.CharField(max_length=32)
     lastRead = models.DateTimeField(auto_now_add=True)
 
     class Meta:

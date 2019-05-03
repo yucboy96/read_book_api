@@ -4,7 +4,6 @@ from dbTables.models import Bookshelf
 
 URL = "https://www.douban.com/search"
 
-
 def search_list(search_string):
     params = {
         "cat": 1001,
@@ -15,13 +14,13 @@ def search_list(search_string):
     r = requests.get(URL, params=params, headers=header)
     detail_pattern = re.compile(
         r"<a class=\"nbg\" href=\"(?:\S*)\"[^\n]*sid: (\d*),.*title=\"(.*)\" ><img src=\"(.*)\"></a>")
-    wtpy_pattern = re.compile(r"<span class=\"subject-cast\">([^\n]*)</span>")
-    rating_pattern = re.compile(r"(?:<span class=\"rating_nums\">(\d.\d)</span>)|(?:<span>\(目前无人评价\)</span>)")
-    print(r.text)
+    wtpy_pattern = re.compile(r"<span class=\"subject-cast\">([^\n]*)</span>\s*</div>\s*</div>\s*(?:<p>(.*)</p>)*")
+    rating_pattern = re.compile(
+        r"(?:<span class=\"rating_nums\">(\d.\d)</span>)|(?:<span>\(目前无人评价\)</span>)")
+
     it1 = detail_pattern.finditer(r.text)
     it2 = wtpy_pattern.finditer(r.text)
     it3 = rating_pattern.finditer(r.text)
-
     book_list = book_list_constructor(it1, it2, it3, search_string)
     return book_list
 
@@ -34,6 +33,10 @@ def book_list_constructor(it1, it2, it3, search_string):
             y = next(it2)
             z = next(it3)
             dic = {"search_string": search_string, "isSearchList": True}
+            if y.group(2) is None:
+                dic["intro"] = "暂无简介"
+            else:
+                dic["intro"] = y.group(2)
             wtpy = y.group(1).split('/')
             dic["writer"] = wtpy[0]
             dic["publisher"] = "暂无"
@@ -53,7 +56,6 @@ def book_list_constructor(it1, it2, it3, search_string):
             dic["webUrl"] = webUrl
             dic["title"] = x.group(2)
             dic["imgUrl"] = x.group(3)
-            print(z.groups())
             if z.group(1) is None:
                 dic["rating"] = "暂无评分"
             else:
