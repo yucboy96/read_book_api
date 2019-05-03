@@ -37,5 +37,6 @@ urlpatterns = [
     path("start_read", tracker_api.start_read),
     path('read_success', tracker_api.read_success),
     path('get_week_track',tracker_api.get_week_track),
+    path('get_month_track',tracker_api.get_month_track),
     path('get_wxcode', account_api.get_wxcode)
 ]

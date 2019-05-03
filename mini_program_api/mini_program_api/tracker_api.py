@@ -68,12 +68,16 @@ def get_month_track(request):
         month = 0
     end = datetime.datetime(year=year, month=month + 1, day=1)
     readTracker = ReadTracker.objects.filter(modify__range=(start, end), sessionId=sessionId)
+    days = (end - start).days
     readSuccess = []
+    for i in range(days):
+        readSuccess.append([(start + datetime.timedelta(days=i)).weekday(), int(start.weekday() + i) / 7, 0])
     successTimes = 0
     failedTimes = 0
     for tracker in readTracker:
         if tracker.isSuccess:
-            readSuccess.append([(tracker.modify - start).days / 7, tracker.modify.weekday(), tracker.readTime])
+            index = (tracker.modify-start).days
+            readSuccess[index][2] = readSuccess[index][2]+tracker.readTime
             successTimes = successTimes + 1
         else:
             failedTimes = failedTimes + 1

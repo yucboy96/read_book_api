@@ -1,6 +1,6 @@
 import base64
 import json
-from Cryptodome.Cipher import AES
+from Crypto.Cipher import AES
 
 APPID = "wxa62d182b0330c59b"
 APPSECRET = "ed54aa4d9c35db2e0664d4ae4501aacb"
