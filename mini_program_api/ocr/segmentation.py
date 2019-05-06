@@ -2,9 +2,9 @@ import cv2
 import numpy as np
 import os
 
-def segment(pic,
-            MIN_COUNT=100,RHO_THRES=50,THETA_THRES=30/52,THETA_OFFSET=10/52,DEBUG=0):
 
+def segment(pic,
+            MIN_COUNT=100, RHO_THRES=50, THETA_THRES=30 / 52, THETA_OFFSET=10 / 52, DEBUG=0):
     """
     这个函数用于将书籍照片分割为单个的书籍，返回一个储存单本书的bytes数组
     :param imgpath:     图片的路径
@@ -16,12 +16,17 @@ def segment(pic,
     :return:            返回一个cuts数组，每个元素表示切出来的图片数组
     """
     # ================= 霍夫变换 ==================
-    imgpath ="./test"
+    imgpath = "./test"
     img = cv2.imdecode(np.fromstring(pic, dtype=np.uint8), -1)
+
     IMG_HEIGHT = img.shape[0]
     IMG_WIDTH = img.shape[1]
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)    # 灰度处理
-    edges = cv2.Canny(gray, 50, 150)                # 提取边缘
+
+
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)  # 灰度处理
+    kernel = np.ones((5, 5), np.uint8)
+    gray = cv2.morphologyEx(gray, cv2.MORPH_OPEN, kernel)
+    edges = cv2.Canny(gray, 50, 150)  # 提取边缘
     lines = cv2.HoughLines(edges, 0.8, np.pi / 180, MIN_COUNT)  # 霍夫变换
     print("Hough change succeed...")
     # 输出文件
@@ -30,23 +35,24 @@ def segment(pic,
         os.mkdir(dir_name)
 
     if DEBUG:
-        cv2.imwrite(dir_name + "/edges.png", edges)
-
+        cv2.imwrite(dir_name + "/edges.jpg", edges)
+        cv2.imwrite(dir_name + "/img.jpg", img)
+        cv2.imwrite(dir_name + "/gray.jpg", gray)
     # ================= 过滤及聚簇 ====================
 
-    results = []    # results 保存直线的tho和theta信息
+    results = []  # results 保存直线的tho和theta信息
 
     for line in lines:
         rho, theta = line[0]
-        if abs(theta) < THETA_OFFSET or abs(np.pi-theta) < THETA_OFFSET:    # 保证正斜率与负斜率都被考虑到
+        if abs(theta) < THETA_OFFSET or abs(np.pi - theta) < THETA_OFFSET:  # 保证正斜率与负斜率都被考虑到
             found = 0
             if len(results) == 0:
                 results.append(line[0])
             else:
                 for result in results:
-                    rho_diff = abs(abs(result[0])-abs(rho))
-                    if theta > np.pi/2:
-                        theta = np.pi-theta
+                    rho_diff = abs(abs(result[0]) - abs(rho))
+                    if theta > np.pi / 2:
+                        theta = np.pi - theta
                     theta_diff = abs(theta - result[1])
                     # theta_diff_pi = abs(theta-np.pi)
                     # if theta < theta_diff_pi: theta_diff = theta
@@ -56,10 +62,10 @@ def segment(pic,
                         break
                 if not found: results.append(line[0])
 
-    results.sort(key=(lambda x:x[0]))   # 按照rho的大小排序
+    results.sort(key=(lambda x: x[0]))  # 按照rho的大小排序
 
     print("Collection succeed...")
-    
+
     # ================= 矩形裁剪 ==================
     # 极坐标转换为直角坐标系
     linesEndpoints = []  # linesEndpoints 保存矩形的两个端点的信息
@@ -70,51 +76,73 @@ def segment(pic,
 
     # 防止线相交
     linesEndpoints.sort(key=lambda point: point[0])
+    linesPoints = []
+    preIndex = 0
     for index, endPoints in enumerate(linesEndpoints):
-        if index < len(linesEndpoints) - 1:
-            if endPoints[2] > linesEndpoints[index + 1][2]:
-                linesEndpoints.pop(index)
-                print("remove!!!")
+        if index == 0:
+            linesPoints.append(endPoints)
+        else:
+            if (endPoints[2] > linesEndpoints[preIndex][2]) and min_gap(endPoints, linesEndpoints[preIndex],
+                                                                         IMG_WIDTH / 50):
+                linesPoints.append(endPoints)
+                preIndex = index
+        # print("remove!!!")
+
+
 
     cuts = []
-    for index,endpoints in enumerate(linesEndpoints):
-        if index < len(linesEndpoints) - 1:
+    for index, endpoints in enumerate(linesPoints):
+        if index < len(linesPoints) - 1:
             x1, y1, x2, y2 = endpoints
-            x1_n, y1_n, x2_n, y2_n = linesEndpoints[index+1]
+            x1_n, y1_n, x2_n, y2_n = linesPoints[index + 1]
             # 左边界
-            left = np.min([x1,x2,x1_n,x2_n])
-            if left < 0: left = 0 # 防止越界
+            left = np.min([x1, x2, x1_n, x2_n])
+            if left < 0: left = 0  # 防止越界
             # 右边界
-            right = np.max([x1,x2,x1_n,x2_n])
+            right = np.max([x1, x2, x1_n, x2_n])
             if right > IMG_WIDTH: right = IMG_WIDTH
             # 切割
-            cut = img[:,left:right]
+            cut = img[:, left:right]
             cuts.append(cut)
             if DEBUG:
-                cv2.imwrite(dir_name+"/cut_{0}.png".format(index), cut)
+                cv2.imwrite(dir_name + "/cut_{0}.jpg".format(index), cut)
 
     print("Cut change succeed...")
     # ================= 绘图及保存 ==================
 
     if DEBUG:
-        for index,endPoints in enumerate(linesEndpoints):
+        for index, endPoints in enumerate(linesPoints):
             x1, y1, x2, y2 = endPoints
-            cv2.line(img, (x1, y1), (x2, y2), (0, 0, 10*index), 3)
-        cv2.imwrite(dir_name + "/lines.png", img)
+            cv2.line(img, (x1, y1), (x2, y2), (0, 0, 10 * index), 3)
+        cv2.imwrite(dir_name + "/lines_fixed.jpg", img)
+        for index, endPoints in enumerate(linesEndpoints):
+            x1, y1, x2, y2 = endPoints
+            cv2.line(img, (x1, y1), (x2, y2), (0, 0, 10 * index), 3)
+        cv2.imwrite(dir_name + "/lines.jpg", img)
     string_cuts = []
+
     for cut in cuts:
-        string_cuts.append(cv2.imencode(".jpg",cut)[1].tostring())
+        string_cuts.append(cv2.imencode(".jpg", cut)[1].tostring())
     return string_cuts
 
 
-def changeToPolar(rho, theta,img_height):
-    x1 = int(rho/np.cos(theta))
+def changeToPolar(rho, theta, img_height):
+    x1 = int(rho / np.cos(theta))
     y1 = 0
-    x2 = int(x1 - img_height*np.tan(theta))
+    x2 = int(x1 - img_height * np.tan(theta))
     y2 = img_height
 
-    return x1,y1,x2,y2
+    return x1, y1, x2, y2
+
+
+def min_gap(point1, point2, gap):
+    x1_middle = (point1[0] + point1[2]) / 2
+    x2_middle = (point2[0] + point2[2]) / 2
+    if abs(x2_middle - x1_middle) < gap:
+        return False
+    else:
+        return True
 
 
 if __name__ == "__main__":
-    segment("test.png",DEBUG=1)
+    segment("test.jpg", DEBUG=1)

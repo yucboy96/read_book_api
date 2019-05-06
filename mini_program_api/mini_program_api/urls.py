@@ -34,9 +34,11 @@ urlpatterns = [
     path('bookshelf_add', book_api.bookshelf_add),
     path('get_bookshelf', book_api.get_bookshelf),
     path('delete_book', book_api.delete_book),
+    path('update_infoDic', book_api.update_infoDic),
     path("start_read", tracker_api.start_read),
     path('read_success', tracker_api.read_success),
     path('get_week_track',tracker_api.get_week_track),
     path('get_month_track',tracker_api.get_month_track),
+    path('get_annual_poster', tracker_api.get_annual_poster),
     path('get_wxcode', account_api.get_wxcode)
 ]

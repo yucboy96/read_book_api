@@ -41,6 +41,8 @@ class Bookshelf(models.Model):
     publisher = models.CharField(max_length=255)
     pubTime = models.CharField(max_length=32)
     intro = models.TextField()
+    shortIntro = models.CharField(max_length=255)
+    tags = models.CharField(max_length=255)
     rating = models.CharField(max_length=32)
     lastRead = models.DateTimeField(auto_now_add=True)
 
