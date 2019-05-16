@@ -9,6 +9,7 @@ AK = "XUOonTSYCPuppXpa1o7FdyZ8"
 SK = "gYfWM3SsYHGYnElcmodY0CuCtjnuyrsi"
 ACCESSTOKENURL = "https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials"
 OCRURL = "https://aip.baidubce.com/rest/2.0/ocr/v1/accurate_basic"
+OCRURLB ="https://aip.baidubce.com/rest/2.0/ocr/v1/general_basic"
 
 
 def get_access_token():

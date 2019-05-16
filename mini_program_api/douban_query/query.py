@@ -86,7 +86,6 @@ def dp_function(dp, i, j, target, word):
         dp[i][j] = dp_function(dp, i - 1, j - 1, target, word) + 1
     else:
         dp[i][j] = max(dp_function(dp, i - 1, j, target, word), dp_function(dp, i, j - 1, target, word))
-    dp[i][j] = True
     return dp[i][j]
 
 

@@ -1,5 +1,7 @@
 from django.http import JsonResponse
 import json
+import re
+
 
 from . import util
 from ocr.main import ocr
@@ -9,37 +11,58 @@ from django.views.decorators.http import require_GET, require_POST
 from django.views.decorators.csrf import csrf_exempt
 from dbTables.models import Bookshelf
 
+GLOBALINDEX = 0
+
+
+def word_filter(word):
+    result = []
+    for char in word:
+        if re.search("[\u4e00-\u9fff]|[a-z]|[A-Z]|[0-9]",char) is not None:
+            result.append(char)
+    return ''.join(result)
+
 
 @csrf_exempt
 @require_POST
 def upload_pic(request):
+    global GLOBALINDEX
     sessionId = request.POST.get("sessionId")
     pic = request.FILES.get("pic")
     # pic = ImageFile(pic)
-    pics = segment(pic.read(), DEBUG=1)
-    book_list_recommond = []
-    for pic in pics:
-        result = ocr(pic)
+    pics = segment(pic.read(), DEBUG=1,GLOBALINDEX=GLOBALINDEX)
+    ocr_result_list = []
+    dir_name = "./output/{0}".format(GLOBALINDEX)
+    fo = open(dir_name + "/seachString.txt", "w")
+    GLOBALINDEX = GLOBALINDEX + 1
+    for pic_group in pics:
         search_string = ""
-        print("ocr result")
-        print(result)
         search_words = []
-        if "words_result" in result:
-            for keyword in result["words_result"]:
-                search_string = search_string + keyword["words"] + "+"
-                search_words.append(keyword["words"])
-            search_string = search_string[:-1]
+        for pic in pic_group[:-1]:
+            result = ocr(pic)
+            print(result)
+            if "words_result" in result:
+                for keyword in result["words_result"]:
+                    search_string = search_string + word_filter(keyword["words"]) + "+"
+                    search_words.append(keyword["words"])
+                search_string = search_string[:-1]
             # print(search_string)
-            if search_string == "":
-                continue
-            searchList = search_list(search_string, search_words)
-            if searchList:
-                searchList[0]["isFirst"] = True
-                book_list_recommond.append(searchList[0])
-                book_list_recommond.extend(book_candidate(searchList, 3))
-            print("search result")
-            print(book_list_recommond)
-    return JsonResponse(util.get_json_dict(message='analyse success', data=book_list_recommond))
+        if search_string == "":
+            result = ocr(pic_group[-1])
+            print(result)
+            if "words_result" in result:
+                for keyword in result["words_result"]:
+                    search_string = search_string + word_filter(keyword["words"]) + "+"
+                    search_words.append(keyword["words"])
+                search_string = search_string[:-1]
+        print("search_string")
+        print(search_string)
+
+        fo.write(search_string+"\n")
+
+        if search_string != "":
+            ocr_result_list.append({"search_string": search_string, "search_words": search_words})
+    fo.close()
+    return JsonResponse(util.get_json_dict(message='analyse success', data=ocr_result_list))
 
 
 def book_candidate(searchList, n):
@@ -55,6 +78,7 @@ def book_candidate(searchList, n):
 def update_infoDic(request):
     request.POST = json.loads(request.body.decode('utf-8'))
     infoDic = search_more_detail(request.POST.get("webUrl"), request.POST.get("shortIntro"))
+    print(infoDic)
     Bookshelf.objects.filter(webUrl=request.POST.get("webUrl")).update(**infoDic)
     return JsonResponse(util.get_json_dict(data={'infoDic': infoDic}))
 
@@ -79,7 +103,8 @@ def bookshelf_add(request):
     request.POST = json.loads(request.body.decode('utf-8'))
     chosen_books = request.POST.get("chosen_books")
     for book in chosen_books:
-        Bookshelf.objects.get_or_create(**book)
+        if Bookshelf.objects.filter(sessionId = chosen_books["sessionId"],imgUrl = chosen_books["imgUrl"]).first() is None:
+            Bookshelf.objects.create(**book)
     return JsonResponse(util.get_json_dict(message="bookshelf_add success"))
 
 
@@ -93,7 +118,7 @@ def get_bookshelf(request):
     bookList = list(Bookshelf.objects.filter(sessionId=sessionId).values())
     for book in bookList:
         book["lastRead"] = book["lastRead"].date()
-    return JsonResponse(util.get_json_dict(message="bookshelf_add success", data=bookList))
+    return JsonResponse(util.get_json_dict(message="get bookshelf success", data=bookList))
 
 
 @csrf_exempt
