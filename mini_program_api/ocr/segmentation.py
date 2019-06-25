@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 import os
 from sklearn.cluster import KMeans
+import time
 
 
 
@@ -161,8 +162,8 @@ def words_segment(gray, img_cut, DEBUG, distanceThresh=500):
                 cv2.rectangle(img_cut, (param[0], param[2]), (param[1], param[3]), (255, 0, 0), 2)
         print(params)
         for param in params:
-            param_group.append(orig_img_cut[max(0, param[0] - 10):min(param[3] + 10, HEIGHT),
-                               max(0, param[0] - 10):min(param[1] + 10, WIDTH)])
+            param_group.append(orig_img_cut[max(0, param[2] - 20):min(param[3] + 20, HEIGHT),
+                               max(0, param[0] - 20):min(param[1] + 20, WIDTH)])
     finally:
         param_group.append(orig_img_cut)
         return param_group
@@ -256,7 +257,7 @@ def segment(pic,
 
     # 防止线相交
     linesEndpoints.sort(key=lambda point: point[0])
-    linesPoints = [(0, 0, 0, IMG_HEIGHT)]
+    linesPoints = []
     preIndex = -1
     for index, endPoints in enumerate(linesEndpoints):
         if preIndex == -1:
@@ -313,13 +314,10 @@ def segment(pic,
     string_cuts = []
 
     for cut_group in cuts:
-        if len(cut_group) == 1:
-            string_cuts.append([cv2.imencode(".jpg", cut_group[0])[1].tostring()])
-        else:
-            temp_list = []
-            for cut in cut_group[:-1]:
-                temp_list.append(cv2.imencode(".jpg", cut)[1].tostring())
-            string_cuts.append(temp_list)
+        temp_list = []
+        for cut in cut_group:
+            temp_list.append(cv2.imencode(".jpg", cut)[1].tostring())
+        string_cuts.append(temp_list)
     return string_cuts
 
 

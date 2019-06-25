@@ -46,7 +46,7 @@ def ocr(pic):
         "image": base64.b64encode(pic).decode("utf-8"),
         "probability": "true"
     }
-    r = requests.post(OCRURL, params=params, headers=header, data=data)
+    r = requests.post(OCRURLB, params=params, headers=header, data=data)
     return json.loads(r.text)
 
 

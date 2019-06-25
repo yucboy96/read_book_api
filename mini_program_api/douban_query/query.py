@@ -1,7 +1,7 @@
 import requests
 import re
-import json
-from dbTables.models import Bookshelf
+from . import re_detail
+
 
 URL = "https://www.douban.com/search"
 
@@ -111,30 +111,41 @@ def search_book_intro(webUrl):
 
 
 def search_more_detail(webUrl, shortIntro):
-    webUrl = "https://m.douban.com/rexxar/api/v2/elessar/subject/" + webUrl
-    r = json.loads(requests.get(webUrl).text)
-    attributes = ['作者', '出版社']
-    myAttributes = ['writer', 'publisher']
-    dic = {'writer': '暂无', 'publisher': '暂无', 'tags': '暂无', 'pubTime': '暂无'}
-    if r['extra']['info']:
-        for item in r['extra']['info']:
-            try:
-                index = attributes.index(item[0])
-                dic[myAttributes[index]] = item[1]
-            except ValueError:
-                continue
-    shortIntro = shortIntro.replace(dic['writer'], '').replace(dic['publisher'], '')
-    pubTime_pattern = re.compile(r".*(\d\d\d\d).*")
-    it = pubTime_pattern.match(shortIntro)
-    if it is not None:
-        dic['pubTime'] = it.group(1)
-    if r['tags']:
-        tags = ''
-        for item in r['tags']:
-            tags = tags + item['name'] + ','
-        if len(tags):
-            tags = tags[:-1]
-        dic['tags'] = tags
+    # old api
+    # webUrl = "https://m.douban.com/rexxar/api/v2/elessar/subject/" + webUrl
+    # r = json.loads(requests.get(webUrl).text)
+    # attributes = ['作者', '出版社']
+    # myAttributes = ['writer', 'publisher']
+    # dic = {'writer': '暂无', 'publisher': '暂无', 'tags': '暂无', 'pubTime': '暂无'}
+    # if r['extra']['info']:
+    #     for item in r['extra']['info']:
+    #         try:
+    #             index = attributes.index(item[0])
+    #             dic[myAttributes[index]] = item[1]
+    #         except ValueError:
+    #             continue
+    # shortIntro = shortIntro.replace(dic['writer'], '').replace(dic['publisher'], '')
+    # pubTime_pattern = re.compile(r".*(\d\d\d\d).*")
+    # it = pubTime_pattern.match(shortIntro)
+    # if it is not None:
+    #     dic['pubTime'] = it.group(1)
+    # if r['tags']:
+    #     tags = ''
+    #     for item in r['tags']:
+    #         tags = tags + item['name'] + ','
+    #     if len(tags):
+    #         tags = tags[:-1]
+    #     dic['tags'] = tags
+    # return dic
+    infoDic = re_detail.re_detail(requests.get("https://book.douban.com/subject/" + webUrl).text)
+    dic = {'writer': '暂无', 'publisher': '暂无', 'pubTime': '暂无'}
+    attributes = ['作者', '出版社', '出版年']
+    myAttributes = ['writer', 'publisher', 'pubTime']
+    for i in range(3):
+        for j in infoDic.keys():
+            if attributes[i] == j:
+                dic[myAttributes[i]] = infoDic[j]
+    dic["tags"] = infoDic["tags"]
     return dic
 
 

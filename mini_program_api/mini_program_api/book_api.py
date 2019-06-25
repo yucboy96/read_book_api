@@ -11,13 +11,11 @@ from django.views.decorators.http import require_GET, require_POST
 from django.views.decorators.csrf import csrf_exempt
 from dbTables.models import Bookshelf
 
-GLOBALINDEX = 0
-
 
 def word_filter(word):
     result = []
     for char in word:
-        if re.search("[\u4e00-\u9fff]|[a-z]|[A-Z]|[0-9]",char) is not None:
+        if re.search("[\u4e00-\u9fff]",char) is not None:
             result.append(char)
     return ''.join(result)
 
@@ -25,43 +23,49 @@ def word_filter(word):
 @csrf_exempt
 @require_POST
 def upload_pic(request):
-    global GLOBALINDEX
+    #global GLOBALINDEX
     sessionId = request.POST.get("sessionId")
     pic = request.FILES.get("pic")
     # pic = ImageFile(pic)
-    pics = segment(pic.read(), DEBUG=1,GLOBALINDEX=GLOBALINDEX)
+    pics = segment(pic.read(), DEBUG=0)
     ocr_result_list = []
-    dir_name = "./output/{0}".format(GLOBALINDEX)
-    fo = open(dir_name + "/seachString.txt", "w")
-    GLOBALINDEX = GLOBALINDEX + 1
+    # dir_name = "./output/{0}".format(GLOBALINDEX)
+    # fo = open(dir_name + "/seachString.txt", "w")
+    #GLOBALINDEX = GLOBALINDEX + 1
     for pic_group in pics:
         search_string = ""
         search_words = []
         for pic in pic_group[:-1]:
             result = ocr(pic)
+            print("this is text_cut img")
             print(result)
             if "words_result" in result:
                 for keyword in result["words_result"]:
-                    search_string = search_string + word_filter(keyword["words"]) + "+"
-                    search_words.append(keyword["words"])
-                search_string = search_string[:-1]
+                    word = word_filter(keyword["words"])
+                    if len(word)>0:
+                        search_string = search_string + word + "+"
+                        search_words.append(word)
+        search_string = search_string[:-1]
             # print(search_string)
         if search_string == "":
             result = ocr(pic_group[-1])
+            print("this is cut img")
             print(result)
             if "words_result" in result:
                 for keyword in result["words_result"]:
-                    search_string = search_string + word_filter(keyword["words"]) + "+"
-                    search_words.append(keyword["words"])
-                search_string = search_string[:-1]
+                    word = word_filter(keyword["words"])
+                    if len(word)>0:
+                        search_string = search_string + word + "+"
+                        search_words.append(word)
+        search_string = search_string[:-1]
         print("search_string")
         print(search_string)
 
-        fo.write(search_string+"\n")
+        # fo.write(search_string+"\n")
 
         if search_string != "":
             ocr_result_list.append({"search_string": search_string, "search_words": search_words})
-    fo.close()
+    # fo.close()
     return JsonResponse(util.get_json_dict(message='analyse success', data=ocr_result_list))
 
 
@@ -103,7 +107,7 @@ def bookshelf_add(request):
     request.POST = json.loads(request.body.decode('utf-8'))
     chosen_books = request.POST.get("chosen_books")
     for book in chosen_books:
-        if Bookshelf.objects.filter(sessionId = chosen_books["sessionId"],imgUrl = chosen_books["imgUrl"]).first() is None:
+        if Bookshelf.objects.filter(sessionId = book["sessionId"],imgUrl = book["imgUrl"]).first() is None:
             Bookshelf.objects.create(**book)
     return JsonResponse(util.get_json_dict(message="bookshelf_add success"))
 
