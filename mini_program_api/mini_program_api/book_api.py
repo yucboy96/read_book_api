@@ -15,10 +15,12 @@ from dbTables.models import Bookshelf
 @csrf_exempt
 @require_POST
 def upload_pic(request):
-    #global GLOBALINDEX
     sessionId = request.POST.get("sessionId")
     pic = request.FILES.get("pic")
-    # pic = ImageFile(pic)
+    allowed_type = ("image/png","image/jpg","image/jpeg")
+    print (pic.content_type)
+    if pic.content_type not in allowed_type:
+        return JsonResponse(util.get_json_dict(message='not support type', data=[]))
     pics = segment(pic.read(), DEBUG=0)
     ocr_result  = ocr(pics)
     return JsonResponse(util.get_json_dict(message='analyse success', data=ocr_result))
