@@ -21,7 +21,6 @@ def upload_pic(request):
     pic = request.FILES.get("pic")
     pic_b = pic.read()
     allowed_type = ("image/png","image/jpg","image/jpeg")
-
     if not os.path.exists("../images/"+sessionId):
         os.mkdir("../images/"+sessionId)
     file = open("../images/"+sessionId+'/'+datetime.now().strftime("%Y%m%d_%H%M%S")+'.jpg','wb')
