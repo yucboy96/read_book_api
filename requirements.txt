@@ -7,7 +7,7 @@ Django==2.1.7
 django-crontab==0.7.1
 idna==2.8
 jieba==0.39
-numpy==1.16.3
+numpy==1.22.0
 opencv-python==4.1.0.25
 pycparser==2.19
 pycryptodome==3.8.1
